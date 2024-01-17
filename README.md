@@ -1,21 +1,16 @@
 ## 🕷ip2domain - 批量查询ip对应域名、备案信息、百度权重
 
-在批量挖SRC时，通常会用较新的漏洞POC批量跑fofa或其他空间测绘的相关资产ip，该工具可用于对跑到的ip批量查询域名及百度权重、备案信息，快速确定ip所属企业，方便提交漏洞。
+本工具二开自https://github.com/sma11new/ip2domain
 
-![image-20211206192632179](README.assets/image-20211206192632179.png)
+在批量挖SRC时，通常会用较新的漏洞POC批量跑fofa或其他空间测绘的相关资产ip，该工具可用于对跑到的ip批量查询域名及百度权重、备案信息，快速确定ip所属企业，方便提交漏洞。
 
 ### 😏更新日志：
 
-#### **2021-12-06 `(v0.2)`：**
+#### **2024-1-17 `(v1.0)`：**
 
--   加入百度权重查询（默认开启），-r可指定显示的权重阈值
+-   在原来的百度PC权重基础上加入百度移动权重、神马权重、搜狗权重，-r可指定显示的权重阈值
 -   优化ICP备案查询（默认关闭），--icp开启
--   鉴于接口限制问题，修改程序逻辑，改为单线程模式
--   修复部分问题
-
-#### **2021-09-18 `(v0.1)`：**
-
--   初版落地，多线程批量快速反查域名、查询ICP备案信息
+-   修复部分问题，替换已失效的接口，减少频率限制
 
 ### 🤓参数说明
 
@@ -28,20 +23,21 @@
 所有参数：
 
 ```
-usage: ip2domain.py [-h] -f  [-t] [-T] [-o]
-
-usage: ip2domain.py [-h] [-t TARGET] [-f FILE] [-s DELAY] [-T TIMEOUT]
-                    [-r RANK] [-o OUTPUT] [--icp]
+usage: ip2domain.py [-h] [-t TARGET] [-f FILE] [-s DELAY] [-T TIMEOUT] [-r RANK] [-o OUTPUT] [--icp]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -t TARGET, --target TARGET 	Target ip/domain
-  -f FILE, --file FILE  	Target ip/domain file
-  -s DELAY, --delay DELAY 	Request delay (default 2s)
-  -T TIMEOUT, --Timeout TIMEOUT 	Request timeout (default 3s)
-  -r RANK, --rank RANK  	Show baiduRank size (default 0)
-  -o OUTPUT, --output OUTPUT 	output file (default ./output/ip2domain_{fileName}_{date}.csv)
-  --icp                 	With search icp (default false)
+  -t TARGET, --target TARGET
+                        Target ip/domain
+  -f FILE, --file FILE  指定目标文件，一行一个，ip或者域名
+  -s DELAY, --delay DELAY
+                        请求延迟 (默认 1s)
+  -T TIMEOUT, --Timeout TIMEOUT
+                        超时时间 (默认 10s)
+  -r RANK, --rank RANK  大于指定的百度权重值则输出，范围0-10 (默认 0)
+  -o OUTPUT, --output OUTPUT
+                        输出文件 (文件路径： ./output/ip2domain_{fileName}_{date}.csv)
+  --icp                 是否开启ICP备案查询 (默认不开启)
 ```
 
 ### 🚩使用示例
@@ -60,9 +56,7 @@ pip install -r requirements.txt
 python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1
 ```
 
-![image_2021-12-06_19-15-09](README.assets/image_2021-12-06_19-15-09.png)
-
-出现了一次PageError，表示响应为200，但是页面未加载出来权重信息。
+![1705506871779](README.assets/1705506871779.jpg)
 
 **2、**百度权重阈值为1，请求时延为2，开启ICP备案查询
 
@@ -70,10 +64,9 @@ python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1
 python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1 --icp
 ```
 
-![image_2021-12-06_19-18-11](README.assets/image_2021-12-06_19-18-11.png)
+![1705507078732](README.assets/1705507078732.jpg)
 
 结果保存在output目录下csv文件内
 
-![image-20211206194416974](README.assets/image-20211206194416974.png)
+![1705507033845](README.assets/1705507033845.jpg)
 
-#### 接口问题，目前查询速度较慢。
