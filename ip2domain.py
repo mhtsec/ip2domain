@@ -12,7 +12,7 @@ import tldextract
 
 from module.banner import banner
 from module.argParse import parseArgs
-from module.baiduRank import baiduRank
+from module.Pearrank import Pearrank
 from module.icpRecord import searchRecord
 from module.searchDomain import searchDomain
 
@@ -99,9 +99,9 @@ def outputResult(argsFile, argsOutput, resultList, icp):
     with open(outputFile, "a", encoding="gbk", newline="") as f:
         csvWrite = csv.writer(f)
         if icp:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","神马权重","搜狗权重","单位名称", "备案编号"])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","360权重","神马权重","搜狗权重","单位名称", "备案编号"])
         else:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","神马权重","搜狗权重" ])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","360权重","神马权重","搜狗权重" ])
         for result in resultList:
             csvWrite.writerow(result)
 
@@ -118,12 +118,16 @@ def ip2domian(target, args, targetNum, targetCount):
 
     for domain in domainList:
         time.sleep(args.delay)
-        baiduRankResult = baiduRank(domain=domain, timeout=args.timeout)
+        PearrankResult = Pearrank(domain=domain, timeout=args.timeout)
         
-        if baiduRankResult["code"] == 1:
-            if baiduRankResult["bdpc_rank"] >= args.rank:
-                resultList.append([target, domain, baiduRankResult["bdpc_rank"],baiduRankResult["bdmb_rank"],baiduRankResult["sm_rank"],baiduRankResult["sg_rank"]])
-        elif baiduRankResult["code"] == -1:
+        if PearrankResult["code"] == 1:
+            
+            if PearrankResult["bdpc_rank"] != None:
+                if PearrankResult["bdpc_rank"] >= args.rank:
+                    resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
+            else:
+                resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
+        elif PearrankResult["code"] == -1:
             resultList.append([target, domain, "ConnError", "ConnError", "ConnError", "ConnError"])
         else: # 0 PageError
             resultList.append([target, domain, "PageError", "PageError", "PageError", "PageError"])
@@ -142,13 +146,13 @@ def ip2domian(target, args, targetNum, targetCount):
 
 def printTitle(icp):
     if icp:
-        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18 + '-' * 18 + '-' * 18 + '-' * 18}+{'-' * 37}+{'-' * 22}+\n"
-        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|{rpad('单位名称', 37)}|{rpad('备案编号', 22)}|\n"
-        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 22}+"
+        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18  + '-' * 18 + '-' * 18 + '-' * 18}+{'-' * 37}+{'-' * 22}+\n"
+        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('360权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|{rpad('单位名称', 37)}|{rpad('备案编号', 22)}|\n"
+        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 22}+"
     else:
-        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+\n"
-        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|\n"
-        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}"
+        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+\n"
+        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('360权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|\n"
+        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}"
     print(msg)
 
 
@@ -172,12 +176,12 @@ def printMsg(result, icp):
     if icp:
         
         print(
-            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rankColor[result[2]]}{rpad('    ' + str(result[2]), 18)}{rankColor[result[3]]}|{rpad('    ' + str(result[3]), 18)}{rankColor[result[4]]}|{rpad('    ' + str(result[4]), 18)}{rankColor[result[5]]}|{rpad('    ' + str(result[5]), 18)}|{rpad(result[6], 37)}|{rpad(result[7], 22)}|")
-        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 18}+{'-' * 22}+")
+            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}|{rpad(result[8], 22)}|")
+        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 18}+{'-' * 22}+")
     else:
         print(
-            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rankColor[result[2]]}{rpad('    ' + str(result[2]), 18)}{rankColor[result[3]]}|{rpad('    ' + str(result[3]), 18)}{rankColor[result[4]]}|{rpad('    ' + str(result[4]), 18)}{rankColor[result[5]]}|{rpad('    ' + str(result[5]), 18)}")
-        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+")
+            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}")
+        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}")
 
 
 if __name__ == "__main__":
