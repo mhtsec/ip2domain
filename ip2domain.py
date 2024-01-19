@@ -123,7 +123,7 @@ def ip2domian(target, args, targetNum, targetCount):
         if PearrankResult["code"] == 1:
             
             if PearrankResult["bdpc_rank"] != None:
-                if PearrankResult["bdpc_rank"] >= args.rank:
+                if int(PearrankResult["bdpc_rank"]) >= args.rank:
                     resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
             else:
                 resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
