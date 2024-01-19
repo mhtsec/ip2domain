@@ -35,9 +35,9 @@ optional arguments:
                         Target ip/domain
   -f FILE, --file FILE  指定目标文件，一行一个，ip或者域名
   -s DELAY, --delay DELAY
-                        请求延迟 (默认 1s)
+                        请求延迟 (默认 2s)
   -T TIMEOUT, --Timeout TIMEOUT
-                        超时时间 (默认 10s)
+                        超时时间 (默认 12s)
   -r RANK, --rank RANK  大于指定的百度权重值则输出，范围0-10 (默认 0)
   -o OUTPUT, --output OUTPUT
                         输出文件 (文件路径： ./output/ip2domain_{fileName}_{date}.csv)
