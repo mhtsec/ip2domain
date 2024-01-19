@@ -18,26 +18,20 @@ def Pearrank(domain, timeout):
         rep = requests.get(url=reqURL, timeout=timeout)
         response = rep.text
         
-        start_index = response.find('{')
-
-# 如果找到了左大括号，截取从左大括号开始到字符串结束的部分
-        if start_index != -1:
-            json_str = response[start_index:]
 
     # 解析JSON
-            try:
-                data =json.loads(json_str)
+        try:
+            data =json.loads(response)
         
        # pc_br_value = data["data"]["success"][0]["pc_br"]
         #m_br_value = data["data"]["success"][0]["m_br"]
-                baiduRankRegular = {"code": 1, "bdpc_rank": data["data"]["Baidu_PC"],"bdmb_rank": data["data"]["Baidu_Mobile"],"360rank":data["data"]["360"],"sm_rank": data["data"]["ShenMa"],"sg_rank": data["data"]["SoGou"]}
+            baiduRankRegular = {"code": 1, "bdpc_rank": data["data"]["Baidu_PC"],"bdmb_rank": data["data"]["Baidu_Mobile"],"360rank":data["data"]["360"],"sm_rank": data["data"]["ShenMa"],"sg_rank": data["data"]["SoGou"]}
         
 
-                return baiduRankRegular 
-            except json.JSONDecodeError as e:
-                print(f"JSON解析错误: {e}")
-        else:
-            print("未找到左大括号")
+            return baiduRankRegular 
+        except json.JSONDecodeError as e:
+            print(f"JSON解析错误: {e}")
+
 
 
     except:
