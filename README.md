@@ -41,7 +41,7 @@
 所有参数：
 
 ```
-usage: ip2domain.py [-h] [-t TARGET] [-f FILE] [-s DELAY] [-T TIMEOUT] [-r RANK] [-o OUTPUT] [--icp]
+usage: main.py [-h] [-t TARGET] [-f FILE] [-s DELAY] [-T TIMEOUT] [-r RANK] [-o OUTPUT] [--icp]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -66,12 +66,12 @@ optional arguments:
 pip install -r requirements.txt
 ```
 
-将要查询的ip/domain放在txt文件内一行一个，`python ip2domain.py -f [file]` 指定，并加入其他参数即可。
+将要查询的ip/domain放在txt文件内一行一个，`python main.py -f [file]` 指定，并加入其他参数即可。
 
 **1、**百度权重阈值为1，请求时延为2，不开启ICP备案查询
 
 ```
-python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1
+python .\main.py -f E:\Desktop\target.txt -s 2 -r 1
 ```
 
 ![1705506871779](README.assets/1705506871779.jpg)
@@ -79,7 +79,7 @@ python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1
 **2、**百度权重阈值为1，请求时延为2，开启ICP备案查询
 
 ```
-python .\ip2domain.py -f E:\Desktop\target.txt -s 2 -r 1 --icp
+python .\main.py -f E:\Desktop\target.txt -s 2 -r 1 --icp
 ```
 
 ![1705507078732](README.assets/1705507078732.jpg)
