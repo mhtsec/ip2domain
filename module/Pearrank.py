@@ -25,7 +25,7 @@ def Pearrank(domain, timeout):
         
        # pc_br_value = data["data"]["success"][0]["pc_br"]
         #m_br_value = data["data"]["success"][0]["m_br"]
-            baiduRankRegular = {"code": 1, "bdpc_rank": data["data"]["Baidu_PC"],"bdmb_rank": data["data"]["Baidu_Mobile"],"360rank":data["data"]["360"],"sm_rank": data["data"]["ShenMa"],"sg_rank": data["data"]["SoGou"]}
+            baiduRankRegular = {"code": 1, "bdpc_rank": data["data"]["BaiDu_PC"],"bdmb_rank": data["data"]["BaiDu_Mobile"],"360rank":data["data"]["360"],"sm_rank": data["data"]["ShenMa"],"sg_rank": data["data"]["SouGou_Pc"]}
         
 
             return baiduRankRegular 
