@@ -10,7 +10,7 @@
 
 ### 😏更新日志：
 #### **2024-3-29 `(v1.3)` ：**
-感谢LuckyRiver99的修复：[百度一下](https://www.baidu.com/)
+感谢LuckyRiver99的修复：[issue4](https://github.com/mhtsec/ip2domain/issues/4)
 
 #### **2024-1-19 `(v1.2)` ：**
 
