@@ -9,7 +9,10 @@
 所以本项目会一直维护，欢迎大家提交更多接口，一起维护项目
 
 ### 😏更新日志：
+#### **2024-1-19 `(v1.3)` ：**
+感谢LuckyRiver99的修复：{{% octicon issue-opened %}} `4`
 
+如果有中途暂停出现TypeError: object of type 'NoneType' has no len()报错，可以尝试把main.py最下面的print(e)改成pass即可顺利跑完
 #### **2024-1-19 `(v1.2)` ：**
 
 找接口作者修复了下接口，现在可以用了
