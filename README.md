@@ -10,7 +10,7 @@
 
 ### 😏更新日志：
 #### **2024-1-19 `(v1.3)` ：**
-感谢LuckyRiver99的修复：{{% octicon issue-opened %}} `4`
+感谢LuckyRiver99的修复：[issue]([http://www.baidu.com/](https://github.com/mhtsec/ip2domain/issues/4))
 
 如果有中途暂停出现TypeError: object of type 'NoneType' has no len()报错，可以尝试把main.py最下面的print(e)改成pass即可顺利跑完
 #### **2024-1-19 `(v1.2)` ：**
