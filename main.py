@@ -99,10 +99,21 @@ def outputResult(argsFile, argsOutput, resultList, icp):
     with open(outputFile, "a", encoding="gbk", newline="") as f:
         csvWrite = csv.writer(f)
         if icp:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","360权重","神马权重","搜狗权重","单位名称", "备案编号"])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重", "单位名称", "备案编号"])
         else:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重","百度移动权重","360权重","神马权重","搜狗权重" ])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重"])
+        
         for result in resultList:
+            # 对权重字段进行检查和转换，无法转换的设置为默认值-1或其他合适的值
+            try:
+                result[2] = int(result[2]) if result[2].isdigit() else -1  # 百度PC权重
+                result[3] = int(result[3]) if result[3].isdigit() else -1  # 百度移动权重
+                result[4] = int(result[4]) if result[4].isdigit() else -1  # 360权重
+                result[5] = int(result[5]) if result[5].isdigit() else -1  # 神马权重
+                result[6] = int(result[6]) if result[6].isdigit() else -1  # 搜狗权重
+            except ValueError:
+                # 如果转换失败，可以在这里记录日志或进行其他处理
+                pass
             csvWrite.writerow(result)
 
 
@@ -119,13 +130,9 @@ def ip2domian(target, args, targetNum, targetCount):
     for domain in domainList:
         time.sleep(args.delay)
         
-
-        match args.model:
-            case 1:
-                PearrankResult = Pearrank(domain=domain, timeout=args.timeout)
-                
-            case 2:
-                PearrankResult = Pearrank(domain=domain, timeout=args.timeout)
+        # 使用if-elif替换match语句
+        if args.model == 1 or args.model == 2:
+            PearrankResult = Pearrank(domain=domain, timeout=args.timeout)
         
         if PearrankResult["code"] == 1:
             if PearrankResult["bdpc_rank"] != None:
@@ -137,7 +144,7 @@ def ip2domian(target, args, targetNum, targetCount):
             elif PearrankResult["code"] == -1:
                 resultList.append([target, domain, "ConnError", "ConnError", "ConnError", "ConnError", "ConnError"])
         else: 
-            resultList.append([target, domain, "PageError", "PageError", "PageError", "PageError", "PageError"])   
+            resultList.append([target, domain, "PageError", "PageError", "PageError", "PageError", "PageError"])      
 
 
     if args.icp:
@@ -167,16 +174,18 @@ def printTitle(icp):
 
 def printMsg(result, icp):
 
-    if icp:
-        
-        print(
-            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}|{rpad(result[8], 22)}|")
-        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 18}+{'-' * 22}+")
-    else:
-        print(
-            f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}")
-        print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}")
-
+    try:
+        if icp:
+            
+            print(
+                f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}|{rpad(result[8], 22)}|")
+            print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 18}+{'-' * 22}+")
+        else:
+            print(
+                f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}")
+            print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}")
+    except:
+        pass
 
 if __name__ == "__main__":
     banner()
@@ -198,4 +207,4 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
     # 捕获异常，并将异常信息赋值给变量e
-        print(f"bye!")
+        pass
