@@ -9,39 +9,52 @@ import json
 
 
 def Pearrank(domain, timeout):
-    
-    reqURL = "https://api.pearktrue.cn/api/website/weight.php?domain="+domain
-
-
-    baiduRankResult = {"code": 1, "bdpc_rank": -1,"bdmb_rank":-1,"360rank":-1,"sm_rank":-1,"sg_rank":-1}
     try:
-        rep = requests.get(url=reqURL, timeout=timeout)
-        response = rep.text
-        
+        # 更新请求地址和参数
+        response = requests.get(
+            f"https://api.mir6.com/api/bdqz?domain={domain}&type=json",
+            timeout=timeout
+        )
+        response.raise_for_status()
+        data = response.json()
 
-    # 解析JSON
-        try:
-            data =json.loads(response)
-        
-       # pc_br_value = data["data"]["success"][0]["pc_br"]
-        #m_br_value = data["data"]["success"][0]["m_br"]
-            baiduRankRegular = {"code": 1, "bdpc_rank": data["data"]["BaiDu_PC"],"bdmb_rank": data["data"]["BaiDu_Mobile"],"360rank":data["data"]["360"],"sm_rank": data["data"]["ShenMa"],"sg_rank": data["data"]["SouGou_Pc"]}
-        
-
-            return baiduRankRegular 
-        except json.JSONDecodeError as e:
-            print(f"JSON解析错误: {e}")
-
-
-
-    except:
-        
-        baiduRankResult["code"] = -1
-        return baiduRankResult
-    
+        # 统一使用新的数据结构解析
+        return {
+            "code": 1,
+            "bdpc_rank": data["data"]["baidupc"],
+            "bdmb_rank": data["data"]["baidum"],
+            "360rank": data["data"]["so360"],
+            "sm_rank": data["data"]["shenma"],
+            "sg_rank": data["data"]["sougou"],
+            # 新增google字段
+            "google_rank": data["data"]["google"]
+        }
+    except Exception as e:
+        print(f"请求异常: {e}")
+        return {"code": -1}
 
 
 if __name__ == '__main__':
     rank = Pearrank("aizhan.com", 12)
     print(rank)
+
+
+def get_pearrank(domain):
+    try:
+        response = requests.get(f"https://api.mir6.com/api/bdqz?domain={domain}&type=json")
+        response.raise_for_status()
+        data = response.json()
+        
+        return {
+            'domain': domain,
+            'baidu': data['data']['baidupc'],
+            'baidu_mobile': data['data']['baidum'],
+            '360': data['data']['so360'],
+            'shenma': data['data']['shenma'],
+            'sogou': data['data']['sougou'],
+            'google': data['data']['google'],
+            'status': 'success'
+        }
+    except Exception as e:
+        return {'status': 'error', 'message': str(e)}
 
