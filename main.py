@@ -9,7 +9,6 @@ import csv
 import time
 import requests
 import tldextract
-
 from module.banner import banner
 from module.argParse import parseArgs
 from module.Pearrank import Pearrank
@@ -24,7 +23,9 @@ from wcwidth import wcswidth as ww
 
 
 def rpad(s, n, c=" "):
-    return s + (n - ww(s)) * c
+    # 新增：过滤ANSI颜色代码后再计算显示宽度
+    clean_str = re.sub(r'\033\[[\d;]*m', '', s)
+    return s + (n - ww(clean_str)) * c
 
 
 requests.packages.urllib3.disable_warnings()  # 抑制https错误信息
@@ -99,22 +100,19 @@ def outputResult(argsFile, argsOutput, resultList, icp):
     with open(outputFile, "a", encoding="gbk", newline="") as f:
         csvWrite = csv.writer(f)
         if icp:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重", "单位名称", "备案编号"])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重", "Google权重", "单位名称", "备案编号"])
         else:
-            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重"])
+            csvWrite.writerow(["ip", "反查域名", "百度PC权重", "百度移动权重", "360权重", "神马权重", "搜狗权重", "Google权重"])
         
         for result in resultList:
-            # 对权重字段进行检查和转换，无法转换的设置为默认值-1或其他合适的值
+            # 简化转换逻辑，直接写入字符串值
             try:
-                result[2] = int(result[2]) if result[2].isdigit() else -1  # 百度PC权重
-                result[3] = int(result[3]) if result[3].isdigit() else -1  # 百度移动权重
-                result[4] = int(result[4]) if result[4].isdigit() else -1  # 360权重
-                result[5] = int(result[5]) if result[5].isdigit() else -1  # 神马权重
-                result[6] = int(result[6]) if result[6].isdigit() else -1  # 搜狗权重
-            except ValueError:
-                # 如果转换失败，可以在这里记录日志或进行其他处理
-                pass
-            csvWrite.writerow(result)
+                # 确保结果有足够的列（包含新增的google排名）
+                if len(result) < 8:  # 原有7列 + 新增1列
+                    result += ["N/A"]*(8 - len(result))
+                csvWrite.writerow(result[:8] + (result[8:] if icp else []))
+            except Exception as e:
+                print(f"写入错误: {e}")
 
 
 def ip2domian(target, args, targetNum, targetCount):
@@ -130,22 +128,29 @@ def ip2domian(target, args, targetNum, targetCount):
     for domain in domainList:
         time.sleep(args.delay)
         
-        # 使用if-elif替换match语句
-        if args.model == 1 or args.model == 2:
-            PearrankResult = Pearrank(domain=domain, timeout=args.timeout)
-        
-        if PearrankResult["code"] == 1:
-            if PearrankResult["bdpc_rank"] != None:
-                if int(PearrankResult["bdpc_rank"]) >= args.rank:
-                    resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
-                    
-                else:
-                    resultList.append([target, domain, PearrankResult["bdpc_rank"],PearrankResult["bdmb_rank"],PearrankResult["360rank"],PearrankResult["sm_rank"],PearrankResult["sg_rank"]])
-            elif PearrankResult["code"] == -1:
-                resultList.append([target, domain, "ConnError", "ConnError", "ConnError", "ConnError", "ConnError"])
-        else: 
-            resultList.append([target, domain, "PageError", "PageError", "PageError", "PageError", "PageError"])      
-
+        # 修改后的Pearrank结果处理逻辑
+        try:
+            PearrankResult = Pearrank(domain=domain, timeout=args.timeout) if args.model in [1, 2] else {}
+            
+            if PearrankResult.get("code") == 1:
+                # 统一处理所有排名字段，使用get方法避免KeyError
+                ranks = [
+                    PearrankResult.get("bdpc_rank", "N/A"),
+                    PearrankResult.get("bdmb_rank", "N/A"),
+                    PearrankResult.get("360rank", "N/A"),
+                    PearrankResult.get("sm_rank", "N/A"),
+                    PearrankResult.get("sg_rank", "N/A"),
+                    PearrankResult.get("google_rank", "N/A")  # 新增的google排名
+                ]
+                # 转换数字类型的排名
+                ranks = [str(r) if isinstance(r, int) else r for r in ranks]
+                resultList.append([target, domain] + ranks)
+            else:
+                # 全部排名字段标记为错误
+                resultList.append([target, domain] + ["Error"]*6)
+                
+        except Exception as e:
+            resultList.append([target, domain] + ["Error"]*6)
 
     if args.icp:
         for result in resultList:
@@ -161,31 +166,91 @@ def ip2domian(target, args, targetNum, targetCount):
 
 
 def printTitle(icp):
+    headers = [
+        ("ip/domain", 17),
+        ("反查域名", 20),
+        ("百度PC", 10),
+        ("百度移动", 10),
+        ("360", 8),
+        ("神马", 8),
+        ("搜狗", 8),
+        ("Google", 8)
+    ]
+    
     if icp:
-        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18  + '-' * 18 + '-' * 18 + '-' * 18}+{'-' * 37}+{'-' * 22}+\n"
-        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('360权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|{rpad('单位名称', 37)}|{rpad('备案编号', 22)}|\n"
-        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 22}+"
-    else:
-        msg = f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+\n"
-        msg += f"|{rpad('ip/domain', 17)}|{rpad('反查域名', 20)}|{rpad('百度PC权重', 18)}|{rpad('百度移动权重', 18)}|{rpad('360权重', 18)}|{rpad('神马权重', 18)}|{rpad('搜狗权重', 18)}|\n"
-        msg += f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}"
-    print(msg)
+        headers += [("单位名称", 30), ("备案编号", 24)]
+    
+    # 生成分隔线
+    separator = "+".join(["-" * width for _, width in headers])
+    print(f"+{separator}+")
+    
+    # 生成标题行
+    title_row = "|".join([rpad(name, width) for name, width in headers])
+    print(f"|{title_row}|")
+    
+    # 生成底部线
+    print(f"+{separator}+")
 
 
 def printMsg(result, icp):
-
     try:
-        if icp:
+        COLOR_RED = "\033[31m"
+        COLOR_GREEN = "\033[32m"
+        COLOR_RESET = "\033[0m"
+        
+        def is_valid(value):
+            # 有效性判断增强：包含None的情况
+            if value in [None, "Error", "N/A"]:
+                return False
+            return str(value).isdigit()
+        
+        def format_field(value, width):
+            # 处理None值
+            value = value if value is not None else "Error"
+            color = COLOR_GREEN if is_valid(value) else COLOR_RED
+            value_str = str(value)[:width//2]  # 防止超长内容破坏格式
+            return f"{color}{value_str.center(width)}{COLOR_RESET}"
+
+        # 基础字段优化（调整格式）
+        fields = [
+            f"{COLOR_GREEN}{result[0][:15].ljust(17)}{COLOR_RESET}",
+            f"{COLOR_GREEN}{result[1][:18].ljust(20)}{COLOR_RESET}",
+            format_field(result[2], 8),  # 宽度保持10列
+            format_field(result[3], 8),
+            format_field(result[4], 6),
+            format_field(result[5], 6),
+            format_field(result[6], 6),
+            format_field(result[7], 6)
+        ]
+
+        if icp and len(result) >= 9:
+            # 单位名称颜色处理
+            unit_name = result[8] or "N/A"
+            unit_color = COLOR_GREEN if unit_name not in ["N/A", ""] else COLOR_RED
+            fields.append(f"{unit_color}{rpad(unit_name, 30)}{COLOR_RESET}")
             
-            print(
-                f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}|{rpad(result[8], 22)}|")
-            print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 37}+{'-' * 18}+{'-' * 22}+")
-        else:
-            print(
-                f"\r|{rpad(result[0], 17)}|{rpad(result[1], 20)}|{rpad('    ' + str(result[2]), 18)}|{rpad('    ' + str(result[3]), 18)}|{rpad('    ' + str(result[4]), 18)}|{rpad('    ' + str(result[5]), 18)}|{rpad('    ' + str(result[6]), 18)}|{rpad('    ' + str(result[7]), 18)}")
-            print(f"+{'-' * 17}+{'-' * 20}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}+{'-' * 18}")
-    except:
-        pass
+            # 备案编号颜色处理
+            icp_value = result[9] if len(result) > 9 else "N/A"
+            icp_color = COLOR_GREEN if icp_value not in ["N/A", ""] else COLOR_RED
+            fields.append(f"{icp_color}{rpad(str(icp_value)[:24], 24)}{COLOR_RESET}")
+        
+        # 动态生成分隔线（保持不变）
+        col_widths = [17, 20, 10, 10, 8, 8, 8, 8]
+        if icp:
+            col_widths += [30, 24]
+        separator = "+".join(["-" * w for w in col_widths])
+        
+        # 构建输出行（保持不变）
+        output = "|".join([
+            rpad(field, width) 
+            for field, width in zip(fields, col_widths)
+        ])
+        
+        print(f"\r|{output}|")
+        print(f"+{separator}+")
+              
+    except Exception as e:
+        print(f"\n输出错误: {str(e)}")
 
 if __name__ == "__main__":
     banner()
